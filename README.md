@@ -2,7 +2,7 @@
 [![Lua](https://img.shields.io/badge/Lua-%232C2D72.svg?logo=lua&logoColor=white)](#)
 [![pages-build-deployment](https://github.com/Knuspii/crunchy-jump/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Knuspii/crunchy-jump/actions/workflows/pages/pages-build-deployment)
 
-# Crunchy Jump
+# Crunchy Jump ![Static Badge](https://img.shields.io/badge/Version-0.6-orange)
 8-Bit Platformer with a Toast.
 
 Runs in the Browser on PC and Mobile, try it out: \
