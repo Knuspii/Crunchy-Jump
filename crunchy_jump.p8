@@ -3,7 +3,7 @@ version 43
 __lua__
 -- crunchy jump
 -- made by knuspii
--- https://github.com/Knuspii/Crunchy-Jump
+-- https://github.com/knuspii/crunchy-jump
 
 -- player sprites
 -- 000 = going up
@@ -47,11 +47,19 @@ __lua__
 
 function _init()
     mode="menu"
+
+    -- transition / effects
+    shake=0
+    trans_t=0
+    trans_len=20 -- frames: scope closes
+    open_t=0
+    open_len=14  -- frames: scope opens
+
     setup_game()
 end
 
 --------------------------------------------------
--- SETUP GAME
+-- setup game
 --------------------------------------------------
 
 function setup_game()
@@ -71,7 +79,7 @@ function setup_game()
     normal_gravity=0.25
     moon_gravity=0.15
     star_timer=0
-    star_time=300 -- 10 Sec 30 fps
+    star_time=300 -- 10 sec 30 fps
     normal_jump=-5.5
     boost_jump=-8.5
     jump=normal_jump
@@ -86,13 +94,13 @@ function setup_game()
     clouds={}
 
     ------------------------------------------------
-    -- CLOUDS
+    -- clouds
     ------------------------------------------------
 
     setup_clouds()
 
     ------------------------------------------------
-    -- GAME START GROUND
+    -- game start ground
     ------------------------------------------------
 
     if mode=="game" then
@@ -105,7 +113,7 @@ function setup_game()
     end
 
     ------------------------------------------------
-    -- GAME PLATFORMS
+    -- game platforms
     ------------------------------------------------
 
     local y=95
@@ -152,7 +160,7 @@ function setup_game()
     end
 
     ------------------------------------------------
-    -- MENU SETUP
+    -- menu setup
     ------------------------------------------------
 
     if mode=="menu" then
@@ -161,7 +169,7 @@ function setup_game()
 end
 
 --------------------------------------------------
--- CLOUD SETUP
+-- cloud setup
 --------------------------------------------------
 
 function setup_clouds()
@@ -192,13 +200,13 @@ function setup_clouds()
 end
 
 --------------------------------------------------
--- UPDATE CLOUDS
+-- update clouds
 --------------------------------------------------
 
 function update_clouds()
     for cloud in all(clouds) do
         ------------------------------------------------
-        -- HORIZONTAL MOVEMENT
+        -- horizontal movement
         ------------------------------------------------
 
         cloud.x+=cloud.dx
@@ -208,7 +216,7 @@ function update_clouds()
         end
 
         ------------------------------------------------
-        -- KEEP CLOUDS AROUND CAMERA
+        -- keep clouds around camera
         ------------------------------------------------
 
         if cloud.offset_y>180 then
@@ -224,7 +232,7 @@ function update_clouds()
 end
 
 --------------------------------------------------
--- DRAW CLOUDS
+-- draw clouds
 --------------------------------------------------
 
 function draw_clouds()
@@ -240,16 +248,109 @@ function draw_clouds()
 end
 
 --------------------------------------------------
--- START GAME
+-- start transition (menu -> game)
+--------------------------------------------------
+
+function start_transition()
+    mode="transition"
+    trans_t=0
+    sfx(2)
+end
+
+function update_transition()
+    trans_t+=1
+
+    -- small screen shake
+    shake=2
+
+    -- scope is closed -> start game
+    if trans_t>=trans_len then
+        start_game()
+    end
+end
+
+--------------------------------------------------
+-- scope vignette
+--------------------------------------------------
+
+function scope(cx,cy,r)
+    ------------------------------------------------
+    -- black outside the circle
+    ------------------------------------------------
+
+    for y=0,127 do
+        local d=y-cy
+
+        if abs(d)<r then
+            local w=sqrt(r*r-d*d)
+
+            if cx-w>0 then
+                rectfill(0,y,cx-w-1,y,0)
+            end
+
+            if cx+w<127 then
+                rectfill(cx+w,y,127,y,0)
+            end
+        else
+            rectfill(0,y,127,y,0)
+        end
+    end
+
+    if r>0 then
+        ------------------------------------------------
+        -- soft edge
+        ------------------------------------------------
+
+        circ(cx,cy,r,1)
+        circ(cx,cy,r-1,5)
+    end
+end
+
+function draw_transition()
+    ------------------------------------------------
+    -- scope closes on player
+    ------------------------------------------------
+
+    if mode=="transition" then
+        local p=trans_t/trans_len
+        local r=115*(1-p)*(1-p)
+
+        scope(
+            player.x+8,
+            player.y+8,
+            r
+        )
+
+    ------------------------------------------------
+    -- scope opens
+    ------------------------------------------------
+
+    elseif open_t>0 then
+        local p=1-open_t/open_len
+        local r=115*(1-(1-p)*(1-p))
+
+        scope(
+            player.x+8,
+            player.y+8-camera_y,
+            r
+        )
+    end
+end
+
+--------------------------------------------------
+-- start game
 --------------------------------------------------
 
 function start_game()
     mode="game"
     setup_game()
+
+    shake=2
+    open_t=open_len
 end
 
 --------------------------------------------------
--- PLATFORM
+-- platform
 --------------------------------------------------
 
 function add_platform(x,y,w,type)
@@ -267,7 +368,7 @@ function add_platform(x,y,w,type)
     )
 
     ------------------------------------------------
-    -- NO ITEMS IN MENU
+    -- no items in menu
     ------------------------------------------------
 
     if mode=="menu" then
@@ -275,7 +376,7 @@ function add_platform(x,y,w,type)
     end
 
     ------------------------------------------------
-    -- GROUND
+    -- ground
     ------------------------------------------------
 
     if type=="ground" then
@@ -283,7 +384,7 @@ function add_platform(x,y,w,type)
     end
 
     ------------------------------------------------
-    -- ITEM CHANCE
+    -- item chance
     ------------------------------------------------
 
     if rnd(1)<0.30 then
@@ -292,7 +393,7 @@ function add_platform(x,y,w,type)
 end
 
 --------------------------------------------------
--- ITEM
+-- item
 --------------------------------------------------
 
 function spawn_item(p)
@@ -312,7 +413,7 @@ function spawn_item(p)
     end
 
     ------------------------------------------------
-    -- ITEM 8x8
+    -- item 8x8
     ------------------------------------------------
 
     local ix=
@@ -329,7 +430,7 @@ function spawn_item(p)
 end
 
 --------------------------------------------------
--- PARTICLES
+-- particles
 --------------------------------------------------
 
 function add_particle(
@@ -415,7 +516,7 @@ function sparkle_particles(x,y)
 end
 
 --------------------------------------------------
--- STAR
+-- star
 --------------------------------------------------
 
 function update_star()
@@ -433,7 +534,7 @@ function update_star()
 end
 
 --------------------------------------------------
--- PARTICLES UPDATE
+-- particles update
 --------------------------------------------------
 
 function update_particles()
@@ -471,12 +572,24 @@ function draw_particles()
 end
 
 --------------------------------------------------
--- UPDATE
+-- update
 --------------------------------------------------
 
 function _update()
     ------------------------------------------------
-    -- CLOUDS
+    -- shake / open timer
+    ------------------------------------------------
+
+    if shake>0 then
+        shake=max(0,shake-0.4)
+    end
+
+    if open_t>0 then
+        open_t-=1
+    end
+
+    ------------------------------------------------
+    -- clouds
     ------------------------------------------------
 
     if mode!="gameover" then
@@ -484,7 +597,7 @@ function _update()
     end
 
     ------------------------------------------------
-    -- MENU
+    -- menu
     ------------------------------------------------
 
     if mode=="menu" then
@@ -494,7 +607,18 @@ function _update()
     end
 
     ------------------------------------------------
-    -- GAME OVER
+    -- transition
+    ------------------------------------------------
+
+    if mode=="transition" then
+        update_menu()
+        update_transition()
+        update_particles()
+        return
+    end
+
+    ------------------------------------------------
+    -- game over
     ------------------------------------------------
 
     if mode=="gameover" then
@@ -509,7 +633,7 @@ function _update()
     end
 
     ------------------------------------------------
-    -- GAME
+    -- game
     ------------------------------------------------
 
     update_star()
@@ -520,7 +644,7 @@ function _update()
     update_particles()
 
     ------------------------------------------------
-    -- FALL OUT OF SCREEN
+    -- fall out of screen
     ------------------------------------------------
 
     if player.y-camera_y>128-16 then
@@ -532,7 +656,7 @@ function _update()
     end
 
     ------------------------------------------------
-    -- HEIGHT SCORE
+    -- height score
     ------------------------------------------------
 
     height_score=max(
@@ -546,19 +670,19 @@ function _update()
 end
 
 --------------------------------------------------
--- MENU UPDATE
+-- menu update
 --------------------------------------------------
 
 function update_menu()
     ------------------------------------------------
-    -- HORIZONTAL MOVEMENT
+    -- horizontal movement
     ------------------------------------------------
 
     player.dx*=0.82
     player.x+=player.dx
 
     ------------------------------------------------
-    -- SCREEN WRAP
+    -- screen wrap
     ------------------------------------------------
 
     if player.x < -player.w then
@@ -570,14 +694,14 @@ function update_menu()
     end
 
     ------------------------------------------------
-    -- GRAVITY
+    -- gravity
     ------------------------------------------------
 
     player.dy+=gravity
     player.y+=player.dy
 
     ------------------------------------------------
-    -- SPRITE
+    -- sprite
     ------------------------------------------------
 
     if player.dy < -0.5 then
@@ -589,7 +713,7 @@ function update_menu()
     end
 
     ------------------------------------------------
-    -- NO PLATFORM COLLISION
+    -- no platform collision
     ------------------------------------------------
 
     if player.y>106 then
@@ -604,21 +728,21 @@ function update_menu()
     end
 
     ------------------------------------------------
-    -- START
+    -- start
     ------------------------------------------------
 
-    if btnp(❎) then
-        start_game()
+    if mode=="menu" and btnp(❎) then
+        start_transition()
     end
 end
 
 --------------------------------------------------
--- PLAYER
+-- player
 --------------------------------------------------
 
 function update_player()
     ------------------------------------------------
-    -- MOVEMENT
+    -- movement
     ------------------------------------------------
 
     if btn(⬅️) then
@@ -640,7 +764,7 @@ function update_player()
     player.x+=player.dx
 
     ------------------------------------------------
-    -- SCREEN WRAP
+    -- screen wrap
     ------------------------------------------------
 
     if player.x < -player.w then
@@ -652,20 +776,20 @@ function update_player()
     end
 
     ------------------------------------------------
-    -- OLD POSITION
+    -- old position
     ------------------------------------------------
 
     local old_y=player.y
 
     ------------------------------------------------
-    -- GRAVITY
+    -- gravity
     ------------------------------------------------
 
     player.dy+=gravity
     player.y+=player.dy
 
     ------------------------------------------------
-    -- SPRITE
+    -- sprite
     ------------------------------------------------
 
     if player.dy < -0.5 then
@@ -677,14 +801,14 @@ function update_player()
     end
 
     ------------------------------------------------
-    -- HITBOX
+    -- hitbox
     ------------------------------------------------
 
     local hx=player.x+2
     local hy=player.y+1
 
     ------------------------------------------------
-    -- PLATFORM COLLISION
+    -- platform collision
     ------------------------------------------------
 
     if player.dy>0 then
@@ -706,7 +830,7 @@ function update_player()
             if hit_x and hit_y then
 
                 ------------------------------------------------
-                -- GROUND
+                -- ground
                 ------------------------------------------------
 
                 if p.type=="ground" then
@@ -724,7 +848,7 @@ function update_player()
                 end
 
                 ------------------------------------------------
-                -- BROKEN
+                -- broken
                 ------------------------------------------------
 
                 if p.type=="broken1"
@@ -757,7 +881,7 @@ function update_player()
                 end
 
                 ------------------------------------------------
-                -- NORMAL
+                -- normal
                 ------------------------------------------------
 
                 player.dy=jump
@@ -776,7 +900,7 @@ function update_player()
 end
 
 --------------------------------------------------
--- REMOVE ITEM
+-- remove item
 --------------------------------------------------
 
 function remove_platform_item(p)
@@ -791,7 +915,7 @@ function remove_platform_item(p)
 end
 
 --------------------------------------------------
--- ITEMS
+-- items
 --------------------------------------------------
 
 function update_items()
@@ -808,7 +932,7 @@ function update_items()
             and hy<item.y+item.h
 
         ------------------------------------------------
-        -- SPIKES
+        -- spikes
         ------------------------------------------------
 
         if item.type=="spike1"
@@ -837,7 +961,7 @@ function update_items()
             end
 
         ------------------------------------------------
-        -- COIN / BOOST
+        -- coin / boost
         ------------------------------------------------
 
         elseif hit_x and hit_y then
@@ -882,7 +1006,7 @@ function update_items()
 end
 
 --------------------------------------------------
--- CAMERA
+-- camera
 --------------------------------------------------
 
 function update_camera()
@@ -895,13 +1019,13 @@ function update_camera()
 end
 
 --------------------------------------------------
--- PLATFORM UPDATE
+-- platform update
 --------------------------------------------------
 
 function update_platforms()
 
     ------------------------------------------------
-    -- REMOVE OLD PLATFORMS
+    -- remove old platforms
     ------------------------------------------------
 
     for p in all(platforms) do
@@ -919,7 +1043,7 @@ function update_platforms()
     end
 
     ------------------------------------------------
-    -- FIND HIGHEST PLATFORM
+    -- find highest platform
     ------------------------------------------------
 
     local highest=20
@@ -934,7 +1058,7 @@ function update_platforms()
     end
 
     ------------------------------------------------
-    -- GENERATE NEW PLATFORMS
+    -- generate new platforms
     ------------------------------------------------
 
     while highest>camera_y-40 do
@@ -986,7 +1110,7 @@ function update_platforms()
 end
 
 --------------------------------------------------
--- DRAW PLATFORM
+-- draw platform
 --------------------------------------------------
 
 function draw_platform(p)
@@ -1019,7 +1143,7 @@ function draw_platform(p)
 end
 
 --------------------------------------------------
--- DRAW PLAYER
+-- draw player
 --------------------------------------------------
 
 function draw_player()
@@ -1033,7 +1157,7 @@ function draw_player()
 end
 
 --------------------------------------------------
--- DRAW GROUND
+-- draw ground
 --------------------------------------------------
 
 function draw_ground()
@@ -1059,7 +1183,7 @@ function draw_ground()
 end
 
 --------------------------------------------------
--- DRAW ITEMS
+-- draw items
 --------------------------------------------------
 
 function draw_items()
@@ -1109,7 +1233,7 @@ function draw_items()
 end
 
 --------------------------------------------------
--- MENU PLATFORMS
+-- menu platforms
 --------------------------------------------------
 
 function setup_menu()
@@ -1168,42 +1292,42 @@ function setup_menu()
 end
 
 --------------------------------------------------
--- MENU
+-- menu
 --------------------------------------------------
 
 function draw_menu()
-    -- TITLE SCREEN
+    -- title screen
     sspr(
-        0, 96,    -- Quelle X Y
-        128, 128, -- Quelle Breite Hoehe
-        1, 8,     -- Ziel X Y
-        128, 128  -- Ziel Breite Hoehe
+        0, 96,    -- quelle x y
+        128, 128, -- quelle breite hoehe
+        1, 8,     -- ziel x y
+        128, 128  -- ziel breite hoehe
     )
 
-    -- GAME VERSION
+    -- game version
     print(
-        "V0.6",
+        "v0.6",
         1,
         1,
         1
     )
 
     print(
-        "MADE BY KNUSPII",
+        "made by knuspii",
         68,
         1,
         1
     )
 
     print(
-        "⬅️ ➡️ TO MOVE",
+        "⬅️ ➡️ to move",
         36,
         35,
         1
     )
 
     print(
-        "PRESS x TO START",
+        "press x to start",
         30,
         42,
         1
@@ -1211,29 +1335,37 @@ function draw_menu()
 end
 
 --------------------------------------------------
--- DRAW
+-- draw
 --------------------------------------------------
 
 function _draw()
     cls(12)
 
     ------------------------------------------------
-    -- WORLD CAMERA
+    -- world camera (with shake)
     ------------------------------------------------
 
+    local sx=0
+    local sy=0
+
+    if shake>0 then
+        sx=rnd(shake)-shake/2
+        sy=rnd(shake)-shake/2
+    end
+
     camera(
-        0,
-        camera_y
+        sx,
+        camera_y+sy
     )
 
     ------------------------------------------------
-    -- CLOUDS
+    -- clouds
     ------------------------------------------------
 
     draw_clouds()
 
     ------------------------------------------------
-    -- PLATFORMS
+    -- platforms
     ------------------------------------------------
 
     for p in all(platforms) do
@@ -1245,7 +1377,7 @@ function _draw()
     end
 
     ------------------------------------------------
-    -- ITEMS
+    -- items
     ------------------------------------------------
 
     if mode!="menu" then
@@ -1253,33 +1385,36 @@ function _draw()
     end
 
     ------------------------------------------------
-    -- PARTICLES
+    -- particles
     ------------------------------------------------
 
     draw_particles()
 
     ------------------------------------------------
-    -- PLAYER
+    -- player
     ------------------------------------------------
 
     draw_player()
 
     ------------------------------------------------
-    -- RESET CAMERA
+    -- menu (with shake)
+    ------------------------------------------------
+
+    camera(sx,sy)
+
+    if mode=="menu"
+    or mode=="transition" then
+        draw_menu()
+    end
+
+    ------------------------------------------------
+    -- reset camera
     ------------------------------------------------
 
     camera()
 
     ------------------------------------------------
-    -- MENU
-    ------------------------------------------------
-
-    if mode=="menu" then
-        draw_menu()
-    end
-
-    ------------------------------------------------
-    -- SCORE
+    -- score
     ------------------------------------------------
 
     if mode=="game" then
@@ -1302,7 +1437,7 @@ function _draw()
     end
 
     ------------------------------------------------
-    -- GAME OVER
+    -- game over
     ------------------------------------------------
 
     if mode=="gameover" then
@@ -1322,19 +1457,25 @@ function _draw()
         )
 
         print(
-            "SCORE: "..score,
+            "score: "..score,
             47,
             63,
             7
         )
 
         print(
-            "PRESS: x TO RESTART",
+            "press: x to restart",
             27,
             71,
             7
         )
     end
+
+    ------------------------------------------------
+    -- transition overlay (scope)
+    ------------------------------------------------
+
+    draw_transition()
 end
 __gfx__
 00044400004440000004440000444000000444000044400000000000000000000000000000000000000000000000000000000000000000000000000000000000
