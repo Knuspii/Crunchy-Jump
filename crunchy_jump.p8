@@ -47,14 +47,6 @@ __lua__
 
 function _init()
     mode="menu"
-
-    -- transition / effects
-    shake=0
-    trans_t=0
-    trans_len=20 -- frames: scope closes
-    open_t=0
-    open_len=14  -- frames: scope opens
-
     setup_game()
 end
 
@@ -75,6 +67,12 @@ function setup_game()
         sprite=2
     }
 
+    -- transition / effects
+    shake=0
+    trans_t=0
+    trans_len=20 -- frames: scope closes
+    open_t=0
+    open_len=14  -- frames: scope opens
     gravity=0.25
     normal_gravity=0.25
     moon_gravity=0.15
@@ -254,7 +252,7 @@ end
 function start_transition()
     mode="transition"
     trans_t=0
-    sfx(2)
+    sfx(0)
 end
 
 function update_transition()
@@ -387,7 +385,7 @@ function add_platform(x,y,w,type)
     -- item chance
     ------------------------------------------------
 
-    if rnd(1)<0.30 then
+    if rnd(1)<0.20 then
         spawn_item(p)
     end
 end
@@ -1306,28 +1304,28 @@ function draw_menu()
 
     -- game version
     print(
-        "v0.6",
+        "V0.6",
         1,
         1,
         1
     )
 
     print(
-        "made by knuspii",
+        "MADE BY KNUSPII",
         68,
-        1,
+        0,
         1
     )
 
     print(
-        "⬅️ ➡️ to move",
+        "⬅️ ➡️ TO MOVE",
         36,
         35,
         1
     )
 
     print(
-        "press x to start",
+        "PRESS x TO START",
         30,
         42,
         1
@@ -1457,14 +1455,14 @@ function _draw()
         )
 
         print(
-            "score: "..score,
+            "SCORE: "..score,
             47,
             63,
             7
         )
 
         print(
-            "press: x to restart",
+            "PRESS: x TO RESTART",
             27,
             71,
             7
