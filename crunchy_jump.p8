@@ -1305,7 +1305,7 @@ function draw_menu()
 
     -- game version
     print(
-        "V0.6",
+        "V0.7",
         1,
         1,
         1
