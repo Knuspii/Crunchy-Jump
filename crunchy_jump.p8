@@ -46,6 +46,7 @@ __lua__
 -- 05 = star
 
 function _init()
+    poke(0x5f2d, 1) -- enable mouse/keyboard dev support
     mode="menu"
     setup_game()
 end
@@ -743,11 +744,11 @@ function update_player()
     -- movement
     ------------------------------------------------
 
-    if btn(⬅️) then
+    if btn(⬅️) or stat(28,4) then
         player.dx-=0.35
     end
 
-    if btn(➡️) then
+    if btn(➡️) or stat(28,7) then
         player.dx+=0.35
     end
 
@@ -1304,7 +1305,7 @@ function draw_menu()
 
     -- game version
     print(
-        "V0.6",
+        "V0.7",
         1,
         1,
         1
@@ -1318,8 +1319,8 @@ function draw_menu()
     )
 
     print(
-        "⬅️ ➡️ TO MOVE",
-        36,
+        "[A][D] OR ⬅️➡️ TO MOVE",
+        17,
         35,
         1
     )
